@@ -35,6 +35,7 @@ var respOption = {
 }
 
 var responseWithHTML = function(res, fileName) {
+  var state = 0;
   res.sendFile(fileName, respOption, function (err) {
     if (err) {
       console.log(err);
@@ -42,6 +43,7 @@ var responseWithHTML = function(res, fileName) {
     }
     else {
       console.log('Sent:', fileName);
+      return state++;
     }
   });
 }
@@ -76,19 +78,35 @@ app.post('/texts', function(req, res) {
   //   console.log(body.d.results[1]);
   // });
 
+//A list of all the possible messages that the user can be asked.
+  var msgArray = {
+    "Your message indicated you wanted to Query Priceline" : 1,
+    "Where is the desired location that you want to book a hotel in?" : 2,
+    "For what dates do you want the hotel?" : 3,
+    "What is your maximum price per night?" : 4,
+    "Here is a list of hotels: " + hotelListFromAPI : 5,
+    "Here is your hotel: " +hotelSelectorFromAPI: 6,
+    "This is the hotel you're staying in. Would you like to book it?" : 7
+    "Your hotel has been booked" : 8
+  };
+
+//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
+
+
   if (note === "priceline" || "Priceline") {
     var str = "What do you want to know?";
 
-    TwilioMessage(res, phoneToMssg, "Hello from Twilio");
+    TwilioMessage(res, phoneToMssg, msgArray);
   }
 })
+
 
 app.post('/calls', function(req, res) {
   console.log(req);
 });
 
-TwilioClient.calls('CA5eb3bb87eff9ad46de801ac0fc302d78').get(function(err, call) { 
-  console.log(call.To); 
+TwilioClient.calls('CA5eb3bb87eff9ad46de801ac0fc302d78').get(function(err, call) {
+  console.log(call.To);
 });
 
 // Error handler
