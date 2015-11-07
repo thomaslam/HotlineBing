@@ -1,42 +1,68 @@
-var http = require('http');
-var fs = require('fs');
-var mongoose = require('mongoose');
+'use strict';
 
+var express = require('express');
+var app = express();
 
-//Starting the payments flow.
-var braintree = require("braintree");
+var braintree = require('braintree');
+
+var bodyParser = require('body-parser');
+var parseUrlEnconded = bodyParser.urlencoded({
+  extended: false
+});
 
 var gateway = braintree.connect({
   environment: braintree.Environment.Sandbox,
-  merchantId: "knbnc9wrd6v6mr5j",
-  publicKey: "7nvkj52zsysfv6tb",
-  privateKey: "d80de536e7a59a6a8a54fdc340467a42"
+  merchantId: 'knbnc9wrd6v6mr5j',
+  publicKey: '7nvkj52zsysfv6tb',
+  privateKey: 'd80de536e7a59a6a8a54fdc340467a42'
 });
 
-var clientTKN = app.get("/client_token", function (req, res) {
-  gateway.clientToken.generate({}, function (err, response) {
+app.use(express.static('public'));
 
-    res.send(response.clientToken);
-  });
-});
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 
-app.post("/checkout", function (req, res) {
-  var nonce = req.body.payment_method_nonce;
-  // Use payment method nonce here
-});
+app.get('/', function (request, response) {
 
-gateway.transaction.sale({
-  amount: , //insert transaction price variable
-  paymentMethodNonce: nonceFromTheClient,
-}, function (err, result) {
-});
-//End server side token handling. Now need to dispatch this to the client and then log the transaction.
-
-//Creates a local web server that the braintree flow is displayed on.
-http.createServer(function(req, res){
-    fs.readFile('paymentSessionURL.html',function (err, data){
-        res.writeHead(200, {'Content-Type': 'text/html','Content-Length':data.length});
-        res.write(data);
-        res.end();
+  gateway.clientToken.generate({}, function (err, res) {
+    response.render('index', {
+      clientToken: res.clientToken
     });
-}).listen(6000);
+  });
+
+});
+
+app.post('/process', parseUrlEnconded, function (request, response) {
+
+  var transaction = request.body;
+
+  gateway.transaction.sale({
+    amount: transaction.amount,
+    paymentMethodNonce: transaction.payment_method_nonce
+  }, function (err, result) {
+
+    if (err) throw err;
+
+    if (result.success) {
+
+      console.log(result);
+
+      response.sendFile('success.html', {
+        root: './public'
+      });
+    } else {
+      response.sendFile('error.html', {
+        root: './public'
+      });
+    }
+  });
+
+});
+
+app.use(express.static(path.join(__dirname, '../public/payments.js')));
+
+app.listen(3000, function () {
+  console.log('Listening on port 3000');
+});
+
+module.exports = app;

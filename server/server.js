@@ -8,11 +8,14 @@ var reqPromise = require('request-promise');
 var config = require('./config.js');
 var mongoose = require('mongoose');
 var twilio = require('twilio');
-var Bing = require('node-bing-api')({accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"});
+var Bing = require('node-bing-api')({
+	accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"
+});
 var HashMap = require('hashmap');
 var http = require('http');
 var fs = require('fs');
 var havenondemand = require('havenondemand');
+var payments = require('payments.js');
 
 //Using Haven on Demand to parse the text of the user's message.
 var havenClient = new havenondemand.HODClient('http://api.idolondemand.com', '61e95a27-c3af-453b-9322-3bce956c0788');
@@ -27,10 +30,10 @@ var TwilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 var TwimlResp = new twilio.TwimlResponse();
 
 //TODO:Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
-var reassVal = function (note, number){
+var reassVal = function(note, number) {
 		return note + number;
-}
-//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
+	}
+	//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
 var map = new HashMap();
 
 // mongoose.connect(config.MONGODB_URL, function(err) {
@@ -41,7 +44,7 @@ var map = new HashMap();
 
 var PhoneSchema = new mongoose.Schema({
 	number: String,
-//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
+	//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
 	switchVar: Number,
 })
 
@@ -71,7 +74,7 @@ var TwilioMessage = function(res, phone, message) {
 
 var priceLineRequest = function(location, checkIn, checkOut, sort, res, phoneToMssg) {
 	// what is rguid=3459hjdfdf
-  var options = "DETAILED_HOTEL,NEARBY_ATTR";
+	var options = "DETAILED_HOTEL,NEARBY_ATTR";
 	var queryStr = location + "?" + "check-in=" + checkIn + "&check-out=" + checkOut + "&currency=USD&response-options=" + options + "&rooms=1&sort=" + sort + "&offset=0&page-size=5";
 	console.log(queryStr);
 
@@ -95,24 +98,24 @@ var priceLineRequest = function(location, checkIn, checkOut, sort, res, phoneToM
 }
 
 var hashMapObject = function(switchVar, location, checkIn, checkOut, sort) {
-  return {
-    "switchVar": switchVar,
-    "location": location,
-    "checkIn" : checkIn,
-    "checkOut": checkOut,
-    "sort": sort
-  }
+	return {
+		"switchVar": switchVar,
+		"location": location,
+		"checkIn": checkIn,
+		"checkOut": checkOut,
+		"sort": sort
+	}
 }
 
 var msgArray = {
-  0: "Thanks for texting Hotline-Bing! You can respond to this message with a general search term and get the results, or with PRICELINE and we will initiate a Priceline search. Text 'Thank You' at any point to stop searching.",
-  1: "Your message indicated you wanted to query Priceline\nWhere is the desired location that you want to book a hotel in?",
-  2: "For what dates do you want the hotel?",
-  3: "What is your maximum price per night?",
-  4: "Here is a list of hotels: ",
-  5: "Here is your hotel: " + "Respond with 'okay' to advance.",
-  6: "This is the hotel you're staying in. Would you like to book it?",
-  7: "Your hotel has been booked. Respond with any message to start a new search."
+	0: "Thanks for texting Hotline-Bing! You can respond to this message with a general search term and get the results, or with PRICELINE and we will initiate a Priceline search. Text 'Thank You' at any point to stop searching.",
+	1: "Your message indicated you wanted to query Priceline\nWhere is the desired location that you want to book a hotel in?",
+	2: "For what dates do you want the hotel?",
+	3: "What is your maximum price per night?",
+	4: "Here is a list of hotels: ",
+	5: "Here is your hotel: " + "Respond with 'okay' to advance.",
+	6: "This is the hotel you're staying in. Would you like to book it?",
+	7: "Your hotel has been booked. Respond with any message to start a new search."
 };
 
 // app.post('/text_processor', bodyParser, function(req, res) {
@@ -124,29 +127,29 @@ var msgArray = {
 // })
 
 app.post('/texts', function(req, res) {
-  var note = req.body.Body;
-  var phoneToMssg = req.body.From;
-  console.log(note);
-  console.log('Number is ' + req.body.From);
+	var note = req.body.Body;
+	var phoneToMssg = req.body.From;
+	console.log(note);
+	console.log('Number is ' + req.body.From);
 
-  var switchVar;
-  if (!map.has(phoneToMssg)) {
-    var phoneObj = hashMapObject(0, null, null, null, null);
-    map.set(phoneToMssg, phoneObj);
-    switchVar = 0;
-  } else {
-    switchVar = map.get(phoneToMssg).switchVar;
-    console.log("Switch var value: " + switchVar);
-  }
+	var switchVar;
+	if (!map.has(phoneToMssg)) {
+		var phoneObj = hashMapObject(0, null, null, null, null);
+		map.set(phoneToMssg, phoneObj);
+		switchVar = 0;
+	} else {
+		switchVar = map.get(phoneToMssg).switchVar;
+		console.log("Switch var value: " + switchVar);
+	}
 
-  var phoneMapObj = map.get(phoneToMssg);
+	var phoneMapObj = map.get(phoneToMssg);
 
-  //TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
+	//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
 
-  //Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
-  if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!") {
-  	TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
-  }
+	//Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
+	if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!") {
+		TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
+	}
 
 	//Looking to see if the input is a price.
 	function isThisPrice(str) {
@@ -156,85 +159,155 @@ app.post('/texts', function(req, res) {
 
 	// switch (switchVar) {
 	// 	// Priceline or Bing
- //    case 0:
- //      phoneMapObj.switchVar++;
- //      console.log(phoneObj);
- //      TwilioClient.messages.create({
- //        to: phoneToMssg,
- //        from: TWILIO_NUMBER,
- //        body: msgArray[0]
- //      }, function(err, data) {
- //        res.send('Message is inbound!');
- //      });
- //      break;
+	//    case 0:
+	//      phoneMapObj.switchVar++;
+	//      console.log(phoneObj);
+	//      TwilioClient.messages.create({
+	//        to: phoneToMssg,
+	//        from: TWILIO_NUMBER,
+	//        body: msgArray[0]
+	//      }, function(err, data) {
+	//        res.send('Message is inbound!');
+	//      });
+	//      break;
 	// 	case 1:
 	// 		if (note === "Priceline" || "priceline") {
- //        phoneMapObj.switchVar++;
+	//        phoneMapObj.switchVar++;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[1]);
 	// 		} else {
- //        phoneMapObj.switchVar = -1;
- //        TwilioMessage(res, phoneToMssg, "Respond with a query for Bing here");
- //      }
+	//        phoneMapObj.switchVar = -1;
+	//        TwilioMessage(res, phoneToMssg, "Respond with a query for Bing here");
+	//      }
 	// 		break;
 	// 	case 2:
 	// 		//In this case we want to return the second message if the user responded with a location.
 	// 		phoneMapObj.switchVar++;
- //      phoneMapObj.location = note;
- //      console.log(phoneMapObj);
- //      TwilioMessage(res, phoneToMssg, msgArray[2]);
+	//      phoneMapObj.location = note;
+	//      console.log(phoneMapObj);
+	//      TwilioMessage(res, phoneToMssg, msgArray[2]);
 	// 		break;
 	// 	case 3:
 	// 		//Looking to see if the user has given us dates for the hotel stay.
 	// 		if (Date.parse(note) != NaN) {
- //        phoneMapObj.switchVar++;
+	//        phoneMapObj.switchVar++;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[3]);
 	// 		}
 	// 		break;
 	// 	case 4:
 	// 		//Looking to see if the user input is equal to a price.
 	// 		if (isThisPrice(note)) {
- //        phoneMapObj.switchVar++;
- //        console.log(phoneMapObj);
+	//        phoneMapObj.switchVar++;
+	//        console.log(phoneMapObj);
 	// 			TwilioMessage(res, phoneToMssg, msgArray[4]);
 	// 		}
 	// 		break;
 	// 	case 5:
 	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
- //        phoneMapObj.switchVar++;
+	//        phoneMapObj.switchVar++;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[5]);
 	// 		}
 	// 		break;
 	// 	//I think this should work because you've already hit the prior instance of this statement already, but if not then add another prompt to the proceeding message so there is a signifier/token which we can search for to make this 6th switch easier.
 	// 	case 6:
 	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
- //        phoneMapObj.switchVar++;
+	//        phoneMapObj.switchVar++;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[6]);
 	// 		}
 	// 		break;
 	// 	case 7:
 	// 		if (note === "okay" || "Okay"){
- //        phoneMapObj.switchVar++;
+	//        phoneMapObj.switchVar++;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
 	// 		}
 	// 		break;
 	// 	case 8:
 	// 		if (note === "yes" || "sure" || "book"){
- //        map.get(phoneToMssg).switchVar = 0;
+	//        map.get(phoneToMssg).switchVar = 0;
 	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
 	// 		}
 	// 		break;
 	// 	default:
- //      // Do Bing stuff
- //      TwilioMessage(res, phoneToMssg, "Bing responds");
+	//      // Do Bing stuff
+	//      TwilioMessage(res, phoneToMssg, "Bing responds");
 	// }
 	//End switch statement.
+	//Begin implementation of the Braintree payments flow to serve the user.
+	'use strict';
 
-	// var location = "new york";
-	// var checkIn = "20151201";
-	// var checkOut = "20151202";
-	// var sort = "HDR";
-	// var dataPromise = priceLineRequest(location, checkIn, checkOut, sort, res, phoneToMssg);
- //  console.log(dataPromise);
+	var express = require('express');
+	var app = express();
+
+	var braintree = require('braintree');
+
+	var bodyParser = require('body-parser');
+	var parseUrlEnconded = bodyParser.urlencoded({
+		extended: false
+	});
+
+	var gateway = braintree.connect({
+		environment: braintree.Environment.Sandbox,
+		merchantId: 'knbnc9wrd6v6mr5j',
+		publicKey: '7nvkj52zsysfv6tb',
+		privateKey: 'd80de536e7a59a6a8a54fdc340467a42'
+	});
+
+	app.use(express.static('public'));
+
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'ejs');
+
+	app.get('/', function(request, response) {
+
+		gateway.clientToken.generate({}, function(err, res) {
+			response.render('index', {
+				clientToken: res.clientToken
+			});
+		});
+
+	});
+
+	app.post('/process', parseUrlEnconded, function(request, response) {
+
+		var transaction = request.body;
+
+		gateway.transaction.sale({
+			amount: transaction.amount,
+			paymentMethodNonce: transaction.payment_method_nonce
+		}, function(err, result) {
+
+			if (err) throw err;
+
+			if (result.success) {
+
+				console.log(result);
+
+				response.sendFile('success.html', {
+					root: './public'
+				});
+			} else {
+				response.sendFile('error.html', {
+					root: './public'
+				});
+			}
+		});
+
+	});
+
+	app.use(express.static(__dirname + '/public/js')));
+
+//app.listen(3000, function () {
+//console.log('Listening on port 3000');
+//});
+
+module.exports = app;
+//End Braintree payments flow.
+
+// var location = "new york";
+// var checkIn = "20151201";
+// var checkOut = "20151202";
+// var sort = "HDR";
+// var dataPromise = priceLineRequest(location, checkIn, checkOut, sort, res, phoneToMssg);
+//  console.log(dataPromise);
 });
 
 //Queries Bing for the search term that the user responded to the initial message with.
