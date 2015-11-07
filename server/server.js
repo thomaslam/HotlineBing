@@ -5,16 +5,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var request = require('request');
 var reqPromise = require('request-promise');
-
 var config = require('./config.js');
 var mongoose = require('mongoose');
-
 var twilio = require('twilio');
-
-var Bing = require('node-bing-api')({
-	accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"
-});
-
+var Bing = require('node-bing-api')({accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"});
 var HashMap = require('hashmap');
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
@@ -210,6 +204,7 @@ app.post('/texts', function(req, res) {
 						default:
 							TwilioMessage(res, phoneToMssg, msgArray[0]);
 					}
+					//End switch statement.
 
 					var location = "new york";
 					var checkIn = "20151201";
