@@ -1,5 +1,7 @@
 var http = require('http');
 var fs = require('fs');
+var mongoose = require('mongoose');
+
 
 //Starting the payments flow.
 var braintree = require("braintree");
@@ -13,6 +15,7 @@ var gateway = braintree.connect({
 
 var clientTKN = app.get("/client_token", function (req, res) {
   gateway.clientToken.generate({}, function (err, response) {
+
     res.send(response.clientToken);
   });
 });

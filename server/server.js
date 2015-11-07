@@ -12,43 +12,9 @@ var Bing = require('node-bing-api')({accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+Xm
 var HashMap = require('hashmap');
 var http = require('http');
 var fs = require('fs');
+var havenondemand = require('havenondemand');
 
-//Starting the payments flow.
-var braintree = require("braintree");
-
-var gateway = braintree.connect({
-  environment: braintree.Environment.Sandbox,
-  merchantId: "knbnc9wrd6v6mr5j",
-  publicKey: "7nvkj52zsysfv6tb",
-  privateKey: "d80de536e7a59a6a8a54fdc340467a42"
-});
-
-var clientTKN = app.get("/client_token", function (req, res) {
-  gateway.clientToken.generate({}, function (err, response) {
-    res.send(response.clientToken);
-  });
-});
-
-app.post("/checkout", function (req, res) {
-  var nonce = req.body.payment_method_nonce;
-  // Use payment method nonce here
-});
-
-gateway.transaction.sale({
-  amount: , //insert transaction price variable
-  paymentMethodNonce: nonceFromTheClient,
-}, function (err, result) {
-});
-//End server side token handling. Now need to dispatch this to the client and then log the transaction.
-
-//Creates a local web server that the braintree flow is displayed on.
-http.createServer(function(req, res){
-    fs.readFile('paymentSessionURL.html',function (err, data){
-        res.writeHead(200, {'Content-Type': 'text/html','Content-Length':data.length});
-        res.write(data);
-        res.end();
-    });
-}).listen(6000);
+var havenClient = new havenondemand.HODClient();
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
 TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
@@ -146,6 +112,14 @@ var msgArray = {
   7: "Your hotel has been booked. Respond with any message to start a new search."
 };
 
+// app.post('/text_processor', bodyParser, function(req, res) {
+//   var data = {text: text, entity_type: ["places"]};
+
+//   havenClient.call('extractconcepts', data, function(req1, res1, body1) {
+//     var 
+//   })
+// })
+
 app.post('/texts', function(req, res) {
   var note = req.body.Body;
   var phoneToMssg = req.body.From;
@@ -177,79 +151,79 @@ app.post('/texts', function(req, res) {
 		return String(n) === str && n > 0;
 	}
 
-	switch (switchVar) {
-		// Priceline or Bing
-    case 0:
-      phoneMapObj.switchVar++;
-      console.log(phoneObj);
-      TwilioClient.messages.create({
-        to: phoneToMssg,
-        from: TWILIO_NUMBER,
-        body: msgArray[0]
-      }, function(err, data) {
-        res.send('Message is inbound!');
-      });
-      break;
-		case 1:
-			if (note === "Priceline" || "priceline") {
-        phoneMapObj.switchVar++;
-				TwilioMessage(res, phoneToMssg, msgArray[1]);
-			} else {
-        phoneMapObj.switchVar = -1;
-        TwilioMessage(res, phoneToMssg, "Respond with a query for Bing here");
-      }
-			break;
-		case 2:
-			//In this case we want to return the second message if the user responded with a location.
-			phoneMapObj.switchVar++;
-      phoneMapObj.location = note;
-      console.log(phoneMapObj);
-      TwilioMessage(res, phoneToMssg, msgArray[2]);
-			break;
-		case 3:
-			//Looking to see if the user has given us dates for the hotel stay.
-			if (Date.parse(note) != NaN) {
-        phoneMapObj.switchVar++;
-				TwilioMessage(res, phoneToMssg, msgArray[3]);
-			}
-			break;
-		case 4:
-			//Looking to see if the user input is equal to a price.
-			if (isThisPrice(note)) {
-        phoneMapObj.switchVar++;
-        console.log(phoneMapObj);
-				TwilioMessage(res, phoneToMssg, msgArray[4]);
-			}
-			break;
-		case 5:
-			if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
-        phoneMapObj.switchVar++;
-				TwilioMessage(res, phoneToMssg, msgArray[5]);
-			}
-			break;
-		//I think this should work because you've already hit the prior instance of this statement already, but if not then add another prompt to the proceeding message so there is a signifier/token which we can search for to make this 6th switch easier.
-		case 6:
-			if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
-        phoneMapObj.switchVar++;
-				TwilioMessage(res, phoneToMssg, msgArray[6]);
-			}
-			break;
-		case 7:
-			if (note === "okay" || "Okay"){
-        phoneMapObj.switchVar++;
-				TwilioMessage(res, phoneToMssg, msgArray[7]);
-			}
-			break;
-		case 8:
-			if (note === "yes" || "sure" || "book"){
-        map.get(phoneToMssg).switchVar = 0;
-				TwilioMessage(res, phoneToMssg, msgArray[7]);
-			}
-			break;
-		default:
-      // Do Bing stuff
-      TwilioMessage(res, phoneToMssg, "Bing responds");
-	}
+	// switch (switchVar) {
+	// 	// Priceline or Bing
+ //    case 0:
+ //      phoneMapObj.switchVar++;
+ //      console.log(phoneObj);
+ //      TwilioClient.messages.create({
+ //        to: phoneToMssg,
+ //        from: TWILIO_NUMBER,
+ //        body: msgArray[0]
+ //      }, function(err, data) {
+ //        res.send('Message is inbound!');
+ //      });
+ //      break;
+	// 	case 1:
+	// 		if (note === "Priceline" || "priceline") {
+ //        phoneMapObj.switchVar++;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[1]);
+	// 		} else {
+ //        phoneMapObj.switchVar = -1;
+ //        TwilioMessage(res, phoneToMssg, "Respond with a query for Bing here");
+ //      }
+	// 		break;
+	// 	case 2:
+	// 		//In this case we want to return the second message if the user responded with a location.
+	// 		phoneMapObj.switchVar++;
+ //      phoneMapObj.location = note;
+ //      console.log(phoneMapObj);
+ //      TwilioMessage(res, phoneToMssg, msgArray[2]);
+	// 		break;
+	// 	case 3:
+	// 		//Looking to see if the user has given us dates for the hotel stay.
+	// 		if (Date.parse(note) != NaN) {
+ //        phoneMapObj.switchVar++;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[3]);
+	// 		}
+	// 		break;
+	// 	case 4:
+	// 		//Looking to see if the user input is equal to a price.
+	// 		if (isThisPrice(note)) {
+ //        phoneMapObj.switchVar++;
+ //        console.log(phoneMapObj);
+	// 			TwilioMessage(res, phoneToMssg, msgArray[4]);
+	// 		}
+	// 		break;
+	// 	case 5:
+	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
+ //        phoneMapObj.switchVar++;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[5]);
+	// 		}
+	// 		break;
+	// 	//I think this should work because you've already hit the prior instance of this statement already, but if not then add another prompt to the proceeding message so there is a signifier/token which we can search for to make this 6th switch easier.
+	// 	case 6:
+	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
+ //        phoneMapObj.switchVar++;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[6]);
+	// 		}
+	// 		break;
+	// 	case 7:
+	// 		if (note === "okay" || "Okay"){
+ //        phoneMapObj.switchVar++;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
+	// 		}
+	// 		break;
+	// 	case 8:
+	// 		if (note === "yes" || "sure" || "book"){
+ //        map.get(phoneToMssg).switchVar = 0;
+	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
+	// 		}
+	// 		break;
+	// 	default:
+ //      // Do Bing stuff
+ //      TwilioMessage(res, phoneToMssg, "Bing responds");
+	// }
 	//End switch statement.
 
 	// var location = "new york";
