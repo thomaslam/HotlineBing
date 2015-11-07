@@ -133,7 +133,7 @@ app.post('/texts', function(req, res) {
 				3: "For what dates do you want the hotel?",
 				4: "What is your maximum price per night?",
 				5: "Here is a list of hotels: ",
-				6: "Here is your hotel: ",
+				6: "Here is your hotel: " + "Respond with 'okay' to advance.",
 				7: "This is the hotel you're staying in. Would you like to book it?",
 				8: "Your hotel has been booked"
 			};
@@ -157,11 +157,11 @@ app.post('/texts', function(req, res) {
 						return false;
 					}
 
-			//Looking to see if the input is a price.
-			function isThisPrice(str) {
-	    var n = ~~Number(str);
-	    return String(n) === str && n >= 0;
-	}
+					//Looking to see if the input is a price.
+					function isThisPrice(str) {
+						var n = ~~Number(str);
+						return String(n) === str && n >= 0;
+					}
 					switch (switchVar) {
 						// Priceline or Bing
 						case 1:
@@ -177,20 +177,36 @@ app.post('/texts', function(req, res) {
 							break;
 						case 3:
 							//Looking to see if the user has given us dates for the hotel stay.
-							if(Date.parse(note)!= Nan){
+							if (Date.parse(note) != Nan) {
 								TwilioMessage(res, phoneToMssg, msgArray[3]);
 							}
 							break;
 						case 4:
 							//Looking to see if the user input is equal to a price.
-							if (isThisPrice(note)){
+							if (isThisPrice(note)) {
 								TwilioMessage(res, phoneToMssg, msgArray[4]);
 							}
 							break;
 						case 5:
-
-
-
+							if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
+								TwilioMessage(res, phoneToMssg, msgArray[5]);
+							}
+							break;
+						case 6:
+							if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
+								TwilioMessage(res, phoneToMssg, msgArray[6]);
+							}
+							break;
+						case 7:
+							if (note === "okay" || "Okay"){
+								TwilioMessage(res, phoneToMssg, msgArray[7]);
+							}
+							break;
+						case 8:
+							if (note === "yes" || "sure" || "book"){
+								TwilioMessage(res, phoneToMssg, msgArray[7]);
+							}
+							break;
 						default:
 							TwilioMessage(res, phoneToMssg, msgArray[0]);
 					}
