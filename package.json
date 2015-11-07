@@ -25,6 +25,7 @@
     "express-partials": "^0.3.0",
     "fs": "0.0.2",
     "hashmap": "^2.0.4",
+    "havenondemand": "^1.0.1",
     "http": "0.0.0",
     "mongoose": "^4.2.4",
     "node-bing-api": "^2.3.0",
