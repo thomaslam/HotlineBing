@@ -4,30 +4,11 @@ var bodyParser = require('body-parser');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var request = require('request');
-// var _ = require('underscore');
-// var engines = require('consolidate');
 
 var config = require('./config.js');
 var mongoose = require('mongoose');
 
-// mongoose.connect(config.MONGODB_URL, function(err) {
-//   if (err) {
-//     console.log(err);
-//   }
-// });
-
-// MONGODB
-// var PhoneSchema = new mongoose.Schema({
-//   number: String,
-//   accessToken: String,
-//   refreshToken: String,
-//   expiresIn: Number
-// });
-
-// var phoneModel = mongoose.model('Phone', PhoneSchema);
-
 var twilio = require('twilio');
-
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
     TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
@@ -43,10 +24,6 @@ app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-app.post('/calls', function(eq, res) {
-
-})
 
 
 app.use(express.static(path.join(__dirname, '../public')));
@@ -67,25 +44,38 @@ var responseWithHTML = function(res, fileName) {
   });
 }
 
-app.use(function (req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+var TwilioMessage = function(res, phone, message) {
+  TwilioClient.messages.create({
+    to: phone,
+    from: TWILIO_NUMBER,
+    body: message
+  }, function(err, data) {
+    // res.send('Message is inbound!');
+  });
+}
+
+app.post('/texts', function(req, res) {
+  var note = req.body.Body;
+  var phoneToMssg = req.body.From;
+  console.log(note);
+  console.log('Number is ' + req.body.From);
+
+  TwilioMessage(res, phoneToMssg, "Hello from Twilio");
+})
+
+app.post('/calls', function(req, res) {
+  console.log(req);
 });
 
-/// error handler
+// Error handler
+app.use(function (req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
 app.use(function (err, req, res, next) {
-    // res.status(err.status || 500);
-    
-    // res.sendFile('error.html', respOption, function (err) {
-    //   if (err) {
-    //     console.log(err);
-    //     res.status(err.status).end();
-    //   }
-    //   else {
-    //     console.log('Sent:', 'error.html');
-    //   }
-    // });
+  console.log('Error!!!');
 });
 
 app.listen(process.env.PORT || 8000);
