@@ -57,24 +57,31 @@ var TwilioMessage = function(res, phone, message) {
 }
 
 app.post('/texts', function(req, res) {
+  // var body = req.body;
   var note = req.body.Body;
   var phoneToMssg = req.body.From;
+  // console.log(body);
+  // console.log("******************");
   console.log(note);
   console.log('Number is ' + req.body.From);
 
-  TwilioMessage(res, phoneToMssg, "Hello from Twilio");
+  // Bing.web(note, {
+  //     top: 10,  // Number of results (max 50)
+  //     skip: 3,   // Skip first 3 results
+  //   }, function(error, res, body){
+
+  //   // body has more useful information, but for this example we are just
+  //   // printing the first two results
+  //   console.log(body.d.results[0]);
+  //   console.log(body.d.results[1]);
+  // });
+
+  if (note === "priceline" || "Priceline") {
+    var str = "What do you want to know?";
+
+    TwilioMessage(res, phoneToMssg, "Hello from Twilio");
+  }
 })
-
-Bing.web(note, {
-    top: 10,  // Number of results (max 50)
-    skip: 3,   // Skip first 3 results
-  }, function(error, res, body){
-
-    // body has more useful information, but for this example we are just
-    // printing the first two results
-    console.log(body.d.results[0]);
-    console.log(body.d.results[1]);
-  });
 
 app.post('/calls', function(req, res) {
   console.log(req);
