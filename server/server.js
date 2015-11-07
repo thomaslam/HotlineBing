@@ -194,6 +194,7 @@ app.post('/texts', function(req, res) {
 								TwilioMessage(res, phoneToMssg, msgArray[5]);
 							}
 							break;
+						//I think this should work because you've already hit the prior instance of this statement already, but if not then add another prompt to the proceeding message so there is a signifier/token which we can search for to make this 6th switch easier.
 						case 6:
 							if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
 								TwilioMessage(res, phoneToMssg, msgArray[6]);
@@ -225,9 +226,9 @@ app.post('/texts', function(req, res) {
 					TwilioMessage(res, phoneToMssg, "Hello from Twilio");
 
 					//Add a global escape with a boolean.
-					// if (exit == true) {
+					// if (exit === true) {
 					// 	//DO NOTHING
-					// } else if (isPriceline == false) {
+					// } else if (isPriceline === false) {
 					// 	TwilioMessage(res, phoneToMssg, searchResponse1);
 					// } else {
 					// 	TwilioMessage(res, phoneToMssg, msgArray[state]);
