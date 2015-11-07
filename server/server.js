@@ -10,6 +10,8 @@ var mongoose = require('mongoose');
 
 var twilio = require('twilio');
 
+var Bing = require('node-bing-api')({ accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU" });
+
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
     TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
     TWILIO_NUMBER = config.TWILIO_NUMBER;
@@ -63,6 +65,17 @@ app.post('/texts', function(req, res) {
   TwilioMessage(res, phoneToMssg, "Hello from Twilio");
 })
 
+Bing.web(note, {
+    top: 10,  // Number of results (max 50)
+    skip: 3,   // Skip first 3 results
+  }, function(error, res, body){
+
+    // body has more useful information, but for this example we are just
+    // printing the first two results
+    console.log(body.d.results[0]);
+    console.log(body.d.results[1]);
+  });
+
 app.post('/calls', function(req, res) {
   console.log(req);
 });
@@ -80,4 +93,3 @@ app.use(function (err, req, res, next) {
 
 app.listen(process.env.PORT || 8000);
 console.log("Server listening on port localhost:8000");
-
