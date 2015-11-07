@@ -18,6 +18,13 @@ TWILIO_NUMBER = config.TWILIO_NUMBER;
 var TwilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 var TwimlResp = new twilio.TwimlResponse();
 
+//Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
+var reassVal = function (note, number){
+		return note + number;
+}
+
+var map = new HashMap();
+
 mongoose.connect(config.MONGODB_URL, function(err) {
 	if (err) {
 		console.log(err);
@@ -26,6 +33,7 @@ mongoose.connect(config.MONGODB_URL, function(err) {
 
 var PhoneSchema = new mongoose.Schema({
 	number: String,
+//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
 	switchVar: Number,
 })
 
