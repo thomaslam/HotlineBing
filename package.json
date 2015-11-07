@@ -27,6 +27,7 @@
     "nodemon": "^1.8.1",
     "path": "^0.12.7",
     "request": "^2.65.0",
+    "request-promise": "^1.0.2",
     "twilio": "^2.5.2"
   }
 }

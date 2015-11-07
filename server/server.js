@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var request = require('request');
+var reqPromise = require('request-promise');
 
 var config = require('./config.js');
 var mongoose = require('mongoose');
@@ -24,7 +25,7 @@ var app = express();
 
 app.use(partials());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
@@ -56,6 +57,30 @@ var TwilioMessage = function(res, phone, message) {
   });
 }
 
+var priceLineRequest = function(location, checkIn, checkOut, options, numRoom, sort) {
+  // what is rguid=3459hjdfdf
+  var queryStr = location + "?" + "check-in=" + checkIn + "&check-out=" + checkOut
+                  + "&currency=USD&response-options=" + options + "&rooms=" + numRoom
+                  + "&sort=" + sort + "&offset=0&page-size=5";
+  console.log(queryStr);
+
+  var options = {
+    uri: 'https://www.priceline.com/pws/v0/stay/retail/listing/' + queryStr,
+    headers: {
+        'User-Agent': 'Request-Promise'
+    },
+    json: true
+  }
+  reqPromise(options)
+    .then(function(data) {
+      console.log("Data from PriceLine API");
+      console.log(data);
+    })
+    .catch(function(err) {
+      if (err) console.log("Call to PriceLine API failed");
+    })
+}
+
 app.post('/texts', function(req, res) {
   // var body = req.body;
   var note = req.body.Body;
@@ -77,18 +102,25 @@ app.post('/texts', function(req, res) {
   // });
 
   if (note === "priceline" || "Priceline") {
-    var str = "What do you want to know?";
+    var str = "Where is your desired location?";
 
-    TwilioMessage(res, phoneToMssg, "Hello from Twilio");
+
+    // TwilioMessage(res, phoneToMssg, "Hello from Twilio");
   }
+
+    // Stub response
+  var location = "new york";
+  var checkIn = "20151201";
+  var checkOut = "20151202";
+  var responseOptions = "DETAILED_HOTEL,NEARBY_ATTR";
+  var rooms = "1";
+  var sort = "HDR";
+  priceLineRequest(location, checkIn, checkOut, responseOptions, rooms, sort);
+  TwilioMessage(res, phoneToMssg, "Hello from Twilio");
 })
 
 app.post('/calls', function(req, res) {
   console.log(req);
-});
-
-TwilioClient.calls('CA5eb3bb87eff9ad46de801ac0fc302d78').get(function(err, call) { 
-  console.log(call.To); 
 });
 
 // Error handler
