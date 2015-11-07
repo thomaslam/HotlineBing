@@ -1,5 +1,0 @@
-module.exports = {
-  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || 'ACddf9697987e2df5231b1ea82ff65b7e9',
-  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '0bac826f66b198b5bb8e7b1ca920647b',
-  TWILIO_NUMBER: process.env.TWILIO_NUMBER || '+17145772793'
-}
