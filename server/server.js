@@ -86,6 +86,10 @@ app.post('/texts', function(req, res) {
 
 	};
 
+  if (note === "priceline" || "Priceline") {
+    var str = "What do you want to know?";
+  }
+
 	var msgArray = {
 		"Thanks for texting Hotline-Bing! You can respond to this message with a general search term and get the results, or with PRICELINE and we will initiate a Priceline search. Text 'Thank You' at any point to stop searching."
 		"Your message indicated you wanted to Query Priceline": 1,
@@ -99,17 +103,16 @@ app.post('/texts', function(req, res) {
 
 	//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
 
+  //Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
 	if (note === "Thank You" || "Thank you" || "thank you" || "Thank you!" || "thank you!") {
 		var exit = true;
 	}
 
-	if (note === "priceline" || "Priceline") {
-		var str = "What do you want to know?";
-		if (exit == true) {
-			//DO NOTHING
-		} else {
-			TwilioMessage(res, phoneToMssg, msgArray[state]);
-		}
+  //Add a global escape with a boolean.
+	if (exit == true) {
+		//DO NOTHING
+	} else {
+		TwilioMessage(res, phoneToMssg, msgArray[state]);
 	}
 })
 
