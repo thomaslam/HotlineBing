@@ -87,6 +87,7 @@ app.post('/texts', function(req, res) {
 	};
 
 	if (note === "priceline" || "Priceline") {
+    var isPriceline = true;
 		var str = "What do you want to know?";
 	}
 
@@ -112,6 +113,8 @@ app.post('/texts', function(req, res) {
 	//Add a global escape with a boolean.
 	if (exit == true) {
 		//DO NOTHING
+	} else if (isPriceline == false) {
+		TwilioMessage(res, phoneToMssg, searchResponse1);
 	} else {
 		TwilioMessage(res, phoneToMssg, msgArray[state]);
 	}
