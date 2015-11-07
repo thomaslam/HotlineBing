@@ -15,7 +15,7 @@ var fs = require('fs');
 var havenondemand = require('havenondemand');
 
 
-var havenClient = new havenondemand.HODClient();
+var havenClient = new havenondemand.HODClient('http://api.idolondemand.com', '61e95a27-c3af-453b-9322-3bce956c0788');
 
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
