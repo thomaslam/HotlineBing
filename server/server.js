@@ -18,11 +18,11 @@ TWILIO_NUMBER = config.TWILIO_NUMBER;
 var TwilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 var TwimlResp = new twilio.TwimlResponse();
 
-//Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
+//TODO:Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
 var reassVal = function (note, number){
 		return note + number;
 }
-
+//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
 var map = new HashMap();
 
 mongoose.connect(config.MONGODB_URL, function(err) {
