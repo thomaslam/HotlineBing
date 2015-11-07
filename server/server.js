@@ -67,6 +67,10 @@ app.post('/calls', function(req, res) {
   console.log(req);
 });
 
+TwilioClient.calls('CA5eb3bb87eff9ad46de801ac0fc302d78').get(function(err, call) { 
+  console.log(call.To); 
+});
+
 // Error handler
 app.use(function (req, res, next) {
   var err = new Error('Not Found');
