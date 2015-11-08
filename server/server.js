@@ -43,6 +43,7 @@ mongoose.connection.on('connected', function() {
   console.log("MongoDB connected " + mongourl);
 })
 
+
 mongoose.connection.on('error', function(err) {
   console.log('MongoDB default connection error: ' + err);
 })
@@ -84,7 +85,7 @@ var TwilioMessage = function(res, phone, message) {
 
 var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 	// what is rguid=3459hjdfdf
-  var options = "DETAILED_HOTEL,NEARBY_ATTR";
+	var options = "DETAILED_HOTEL,NEARBY_ATTR";
 	var queryStr = location + "?" + "check-in=" + checkIn + "&check-out=" + checkOut + "&currency=USD&response-options=" + options + "&rooms=1&sort=PRICE" + "&offset=0&page-size=5";
 	console.log(queryStr);
 
@@ -101,7 +102,7 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 	reqPromise(options).promise().bind(this)
 		.then(function(data) {
 			var exStr = data.hotels;
-			console.log(data);
+			// console.log(data);
 			TwilioMessage(res, phoneToMssg, "Found 5 hotels");
       this.dataObj = data;
       console.log(this.dataObj);
@@ -112,101 +113,107 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 }
 
 var months = {
-  "JANUARY": 1,
-  "FEBRUARY": 2,
-  "MARCH": 3,
-  "APRIL": 4,
-  "MAY": 5,
-  "JUNE": 6,
-  "JULY": 7,
-  "AUGUST": 8,
-  "SEPTEMBER": 9,
-  "OCTOBER": 10,
-  "NOVEMBER": 11,
-  "DECEMBER": 12
+	"JANUARY": 1,
+	"FEBRUARY": 2,
+	"MARCH": 3,
+	"APRIL": 4,
+	"MAY": 5,
+	"JUNE": 6,
+	"JULY": 7,
+	"AUGUST": 8,
+	"SEPTEMBER": 9,
+	"OCTOBER": 10,
+	"NOVEMBER": 11,
+	"DECEMBER": 12
 }
 
 app.post('/texts', function(req, res) {
-  var note = req.body.Body;
-  var phoneToMssg = req.body.From;
-  console.log(note);
-  console.log('Number is ' + req.body.From);
+	var note = req.body.Body;
+	var phoneToMssg = req.body.From;
+	console.log(note);
+	console.log('Number is ' + req.body.From);
 
-  var data = {
-    text: note,
-    entity_type: ["places_eng", "date_eng"]
-  };
+	var data = {
+		text: note,
+		entity_type: ["places_eng", "date_eng"]
+	};
 
-  havenClient.call('extractentities', data, function(err, resp, body) {
-    var entities = resp.body.entities;
-    var loc;
-    var date1;
-    var date2;
-    for (var i=0; i < entities.length; i++) {
-      var entity = entities[i]
-      var type = entity.type
-      if (type === 'places_eng') {
-        loc = entity.original_text
-      }
-      console.log("sth"+date1)
-      if (type === 'date_eng') {
-        if (date1 === undefined){
-          date1 = entity.original_text;
-          console.log("ssgg"+date1)
-        } else
-          date2 = entity.original_text;
-      }
-    }
-    console.log(loc);
-    console.log(date1);
-    console.log(date2);
-    console.log(resp.body);
+	//Function is currently called on first run to determine whether or not the user is trying to hit the priceline API.
+	havenClient.call('extractentities', data, function(err, resp, body) {
+		var entities = resp.body.entities;
+		var loc;
+		var date1;
+		var date2;
+		for (var i = 0; i < entities.length; i++) {
+			var entity = entities[i]
+			var type = entity.type
+			if (type === 'places_eng') {
+				loc = entity.original_text
+			}
+			if (type === 'date_eng') {
+				if (date1 === undefined) {
+					date1 = entity.original_text;
+				} else
+					date2 = entity.original_text;
+			}
+		}
+		console.log(loc);
+		console.log(date1);
+		console.log(date2);
+		console.log(resp.body);
 
-    // date1, date2 parsing
-    date1 = date1.toUpperCase();
-    date2 = date2.toUpperCase();
+		// date1, date2 parsing
+		date1 = date1.toUpperCase();
+		date2 = date2.toUpperCase();
 
-    console.log("Date1: " + date1);
-    console.log("Date2: " + date2);
+		console.log("Date1: " + date1);
+		console.log("Date2: " + date2);
 
-    var date1Month = date1.split(" ")[0];
-    var date1Day = date1.split(" ")[1];
-    date1Day = date1Day ? date1Day : "";
-    date2Day = date2Day ? date1Day : "";
-    var date2Month = date2.split(" ")[0];
-    var date2Day = date2.split(" ")[1];
+		var date1Month = date1.split(" ")[0];
+		var date1Day = date1.split(" ")[1];
+		date1Day = date1Day ? date1Day : "";
+		date2Day = date2Day ? date1Day : "";
+		var date2Month = date2.split(" ")[0];
+		var date2Day = date2.split(" ")[1];
 
-    date1Month = months[date1Month] ? months[date1Month] : date1Month;
-    date2Month = months[date2Month] ? months[date2Month] : date2Month;
+		date1Month = months[date1Month] ? months[date1Month] : date1Month;
+		date2Month = months[date2Month] ? months[date2Month] : date2Month;
 
-    date1 = "2015" + date1Month + date1Day;
-    date2 = "2015" + date2Month + date2Day;
+		date1 = "2015" + date1Month + date1Day;
+		date2 = "2015" + date2Month + date2Day;
 
-    priceLineRequest(loc, date1, date2, res, phoneToMssg)
-  });
-  // var phoneMapObj = map.get(phoneToMssg);
+		priceLineRequest(loc, date1, date2, res, phoneToMssg)
+	});
+	// var phoneMapObj = map.get(phoneToMssg);
 
-  //TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
+	//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
 
-  //Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
-  if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!") {
-  	TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
-  }
+	//Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
 
-  TwilioMessage(res, phoneToMssg, "End Twilio");
+	if (note === "pay" || note === "I want to pay now." || note === "charge" || note === "book it" || note === "get me the room") {
+		TwilioMessage(res, phoneToMssg, "Click on the following link and go through the payment process. Texting thanks after completion will end your session." + app.use(express.static(path.join(__dirname, '../public'))));
+	}
+
+	if (note === "search for" || "search") {
+		TwilioMessage(res, phoneToMssg, Bing.web(note, {
+				top: 5, // Number of results (max 50)
+				skip: 0, // Skip first 3 results
+			},
+			function(error, res, body) {
+
+				// body has more useful information, but for this example we are just
+				// printing the first two results
+				var searchResponse1 = body.d.results[0];
+				var searchResponse2 = body.d.results[1];
+			}));
+	}
+
+	if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!" || note === "thanks") {
+		TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
+	}
+
+	TwilioMessage(res, phoneToMssg, "End Twilio");
 });
-
-//Queries Bing for the search term that the user responded to the initial message with.
-// Bing.web(note, {
-//  top: 10, // Number of results (max 50)
-//  skip: 0, // Skip first 3 results
-// }, function(error, res, body) {
-
-//  // body has more useful information, but for this example we are just
-//  // printing the first two results
-//  var searchResponse1 = body.d.results[0];
-//  var searchResponse2 = body.d.results[1];
-// });
 
 app.post('/calls', function(req, res) {
 	console.log(req);
