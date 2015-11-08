@@ -2,7 +2,7 @@
 
 ##You're one stop hotline.
 
-![]http://www.bet.com/content/dam/betcom/images/2015/10/Music-10-16-10-31/102015-music-drake-hotline-bling-gif-3.gif.custom1200x675x20.dimg
+![](http://www.bet.com/content/dam/betcom/images/2015/10/Music-10-16-10-31/102015-music-drake-hotline-bling-gif-3.gif.custom1200x675x20.dimg)
 
 A product of YHACK-2015, Hotline-Bing is an sms driven web client. Based on initial user input as stored in `note` the query is either handed off to Haven-On-Demand where text analysis is done and the proper dates and locations are returned, or given directly to Bing.
 
