@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/thomaslam/HotlineBing.svg?branch=master)](https://travis-ci.org/thomaslam/HotlineBing)
 
+##Awards
+Won best use of [Priceline](http://www.priceline.com) API at YHACK-2015. Won 2nd best use of HP [Haven-On-Demand](https://www.havenondemand.com/) API.
+
 ##The one stop hotline.
 
 ![](http://www.bet.com/content/dam/betcom/images/2015/10/Music-10-16-10-31/102015-music-drake-hotline-bling-gif-3.gif.custom1200x675x20.dimg)
