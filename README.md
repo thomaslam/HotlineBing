@@ -1,5 +1,7 @@
 #HOTLINE-BING
 
+[![Build Status](https://travis-ci.org/thomaslam/HotlineBing.svg?branch=master)](https://travis-ci.org/thomaslam/HotlineBing)
+
 ##The one stop hotline.
 
 ![](http://www.bet.com/content/dam/betcom/images/2015/10/Music-10-16-10-31/102015-music-drake-hotline-bling-gif-3.gif.custom1200x675x20.dimg)
