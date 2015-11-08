@@ -1,0 +1,35 @@
+<html lang="en">
+
+<head></head>
+
+<body>
+	<!-- <form id="checkout" method="post" action="/checkout">
+		<div id="payment-form"></div>
+		<input type="submit" value="Pay $10">
+	</form> -->
+  <form class="pure-form pure-form-stacked " action="/process" method="post">
+            <fieldset>
+                <div class="pure-g">
+                    <label class="pure-u-1-3 label" for="amount">Name your price:</label>
+                    <input class="pure-u-2-3" id="amount" class="pure-input-1" name="amount" type="text" placeholder="XX.XX" required>
+                </div>
+
+                <br>
+
+                <div id="checkout"></div>
+
+                <button type="submit" class="pure-button pure-button-primary">Pay now</button>
+
+            </fieldset>
+        </form>
+	<script src="https://js.braintreegateway.com/v2/braintree.js"></script>
+	<script>
+		// We generated a client token for you so you can test out this code
+		// immediately. In a production-ready integration, you will need to
+		// generate a client token on your server (see section below).
+		var clientToken = clientTKN;
+		braintree.setup(clientToken, "dropin", {
+			container: "payment-form"
+		});
+	</script>
+</body>

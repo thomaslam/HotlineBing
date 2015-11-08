@@ -20,6 +20,7 @@
   "dependencies": {
     "body-parser": "^1.14.1",
     "braintree": "^1.30.0",
+    "braintree-web": "^2.9.0",
     "cookie-parser": "^1.4.0",
     "ejs": "^2.3.4",
     "express": "^4.13.3",
@@ -32,8 +33,14 @@
     "node-bing-api": "^2.3.0",
     "nodemon": "^1.8.1",
     "path": "^0.12.7",
+    "purecss": "^0.6.0",
+    "q": "^1.4.1",
     "request": "^2.65.0",
     "request-promise": "^1.0.2",
     "twilio": "^2.5.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "supertest": "^0.15.0"
   }
 }
