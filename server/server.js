@@ -49,13 +49,17 @@ mongoose.connection.on('error', function(err) {
 })
 
 var QuerySchema = new mongoose.Schema({
-  number: String,
-  firstHotel: String,
-  secondHotel: String,
-  thirdHotel: String,
-  fourthHotel: String,
-  fifthHotel: String
+  number: String
 });
+
+var HotelSchema = new mongoose.Schema({
+  address: String,
+  longtitude: Number,
+  latitude: Number,
+  price: Number,
+  checkInTime: String,
+  checkOutTime: String,
+})
 
 var queryModel = mongoose.model('Query', QuerySchema);
 
@@ -97,31 +101,53 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 		json: true
 	}
 
-  var dataObj;
-
 	reqPromise(options).promise().bind(this)
 		.then(function(data) {
-			var exStr = data.hotels;
-			// console.log(data);
-			TwilioMessage(res, phoneToMssg, "Found 5 hotels");
-      this.dataObj = data;
-      console.log(this.dataObj);
+			var hotels = data.hotels;
+			// console.log(data.hotels);
+			if (data.hotels) {
+        TwilioMessage(res, phoneToMssg, "Found 5 hotels. Respond with 1-5 to find out more");
+
+        for (var i = 0; i < data.hotels.length; i++) {
+          var hotel = data.hotels[i];
+          var name = hotel.name;
+          var location = hotel.location;
+          var rates = hotel.ratesSummary;
+          var starRating = hotel.starRating;
+          var policies = hotel.policies;
+
+          var address = location.address.addressLine1 + ", " + location.address.cityName + ", " + location.address.zip;
+          var hotelPhone = location.address.phone;
+          var messageToSend = name + "\n" + address + "\n" + "Rating: " + starRating + "\n"
+                              + "Minrate: " + rates.minPrice;
+          TwilioMessage(res, phoneToMssg, messageToSend);
+        }
+        res.send('Success: end Twilio call');
+      } else {
+        TwilioMessage(res, phoneToMssg, "Uh oh can't find hotels on PriceLine. Please try again");
+        console.log("Call to PriceLine API failed");
+        res.send('Error: end Twilio call');
+      }
 		})
 		.catch(function(err) {
-			if (err) console.log("Call to PriceLine API failed");
+			if (err) {
+        TwilioMessage(res, phoneToMssg, "Uh oh seems like PriceLine is down. Please try again later");
+        console.log("Call to PriceLine API failed");
+        res.send('Error: end Twilio call');
+      }
 		})
 }
 
 var months = {
-	"JANUARY": 1,
-	"FEBRUARY": 2,
-	"MARCH": 3,
-	"APRIL": 4,
-	"MAY": 5,
-	"JUNE": 6,
-	"JULY": 7,
-	"AUGUST": 8,
-	"SEPTEMBER": 9,
+	"JANUARY": "01",
+	"FEBRUARY": "02",
+	"MARCH": "03",
+	"APRIL": "04",
+	"MAY": "05",
+	"JUNE": "06",
+	"JULY": "07",
+	"AUGUST": "08",
+	"SEPTEMBER": "09",
 	"OCTOBER": 10,
 	"NOVEMBER": 11,
 	"DECEMBER": 12
@@ -186,10 +212,6 @@ app.post('/texts', function(req, res) {
 	});
 	// var phoneMapObj = map.get(phoneToMssg);
 
-	//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
-
-	//Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
-
 	if (note === "pay" || note === "I want to pay now." || note === "charge" || note === "book it" || note === "get me the room") {
 		TwilioMessage(res, phoneToMssg, "Click on the following link and go through the payment process. Texting thanks after completion will end your session." + app.use(express.static(path.join(__dirname, '../public'))));
 	}
@@ -212,7 +234,8 @@ app.post('/texts', function(req, res) {
 		TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
 	}
 
-	TwilioMessage(res, phoneToMssg, "End Twilio");
+	// TwilioMessage(res, phoneToMssg, "End Twilio");
+  TwilioMessage(res, phoneToMssg, "Searching PriceLine... Please wait");
 });
 
 app.post('/calls', function(req, res) {
