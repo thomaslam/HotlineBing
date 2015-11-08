@@ -8,11 +8,14 @@ var reqPromise = require('request-promise');
 var config = require('./config.js');
 var mongoose = require('mongoose');
 var twilio = require('twilio');
-var Bing = require('node-bing-api')({accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"});
+var Bing = require('node-bing-api')({
+	accKey: "oMNfs6eyBszFZq51gCfgClMac+tn9pH+XmL0v3V7bPU"
+});
 var HashMap = require('hashmap');
 var http = require('http');
 var fs = require('fs');
 var havenondemand = require('havenondemand');
+var payments = require('./payments.js');
 
 //Using Haven on Demand to parse the text of the user's message.
 var havenClient = new havenondemand.HODClient('http://api.idolondemand.com', '61e95a27-c3af-453b-9322-3bce956c0788');
@@ -27,21 +30,21 @@ var TwilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 var TwimlResp = new twilio.TwimlResponse();
 
 //TODO:Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
-var reassVal = function (note, number){
+var reassVal = function(note, number) {
 		return note + number;
-}
-//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
+	}
+	//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
 var map = new HashMap();
 
-// mongoose.connect(config.MONGODB_URL, function(err) {
-// 	if (err) {
-// 		console.log(err);
-// 	}
-// });
+mongoose.connect(config.MONGODB_URL, function(err) {
+	if (err) {
+		console.log(err);
+	}
+});
 
 var PhoneSchema = new mongoose.Schema({
 	number: String,
-//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
+	//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
 	switchVar: Number,
 })
 
@@ -84,9 +87,10 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 	}
 	reqPromise(options)
 		.then(function(data) {
-			var exStr = data.totalSize;
+			var exStr = data.hotels;
 			console.log(data);
-			TwilioMessage(res, phoneToMssg, "Total size: " + exStr);
+			TwilioMessage(res, phoneToMssg, "Found 5 hotels");
+      
 		})
 		.catch(function(err) {
 			if (err) console.log("Call to PriceLine API failed");
@@ -94,13 +98,13 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 }
 
 var hashMapObject = function(switchVar, location, checkIn, checkOut, sort) {
-  return {
-    "switchVar": switchVar,
-    "location": location,
-    "checkIn" : checkIn,
-    "checkOut": checkOut,
-    "sort": sort
-  }
+	return {
+		"switchVar": switchVar,
+		"location": location,
+		"checkIn": checkIn,
+		"checkOut": checkOut,
+		"sort": sort
+	}
 }
 
 var months = {
@@ -185,13 +189,7 @@ app.post('/texts', function(req, res) {
   	TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
   }
 
-	//Looking to see if the input is a price.
-	function isThisPrice(str) {
-		var n = ~~Number(str);
-		return String(n) === str && n > 0;
-	}
-
- TwilioMessage(res, phoneToMssg, "Error Twilio");
+  TwilioMessage(res, phoneToMssg, "End Twilio");
 });
 
 //Queries Bing for the search term that the user responded to the initial message with.
