@@ -39,22 +39,22 @@ mongoose.connect(config.MONGODB_URL, function(err) {
 });
 
 mongoose.connection.on('connected', function() {
-  var mongourl = process.env.MONGODB_URL || 'mongodb://localhost/hotlinebing';
-  console.log("MongoDB connected " + mongourl);
+	var mongourl = process.env.MONGODB_URL || 'mongodb://localhost/hotlinebing';
+	console.log("MongoDB connected " + mongourl);
 })
 
 
 mongoose.connection.on('error', function(err) {
-  console.log('MongoDB default connection error: ' + err);
+	console.log('MongoDB default connection error: ' + err);
 })
 
 var QuerySchema = new mongoose.Schema({
-  number: String,
-  firstHotel: String,
-  secondHotel: String,
-  thirdHotel: String,
-  fourthHotel: String,
-  fifthHotel: String
+	number: String,
+	firstHotel: String,
+	secondHotel: String,
+	thirdHotel: String,
+	fourthHotel: String,
+	fifthHotel: String
 });
 
 var queryModel = mongoose.model('Query', QuerySchema);
@@ -97,15 +97,47 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 		json: true
 	}
 
-  var dataObj;
+	//Provide a logical switch to prevent the Priceline API from being called every time. THOMAS: If this broke something just remove the entire switch statement and go back to using the single logical statements chained together.
+	switch (notes !== null) {
+		case 0:
+			if (note === "pay" || note === "I want to pay now." || note === "charge" || note === "book it" || note === "get me the room") {
+				TwilioMessage(res, phoneToMssg, "Click on the following link and go through the payment process. Texting thanks after completion will end your session." + app.use(express.static(path.join(__dirname, '../public'))));
+			};
+			break;
+		case 1:
+			if (note === "search for" || "search") {
+				TwilioMessage(res, phoneToMssg, Bing.web(note, {
+						top: 5, // Number of results (max 50)
+						skip: 0, // Skip first 3 results
+					},
+					function(error, res, body) {
+
+						// body has more useful information, but for this example we are just
+						// printing the first two results
+						var searchResponse1 = body.d.results[0];
+						var searchResponse2 = body.d.results[1];
+					}));
+			};
+			break;
+		case 2:
+			if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!" || note === "thanks") {
+				TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
+			};
+			break;
+
+		default:
+
+	}
+
+	var dataObj;
 
 	reqPromise(options).promise().bind(this)
 		.then(function(data) {
 			var exStr = data.hotels;
 			// console.log(data);
 			TwilioMessage(res, phoneToMssg, "Found 5 hotels");
-      this.dataObj = data;
-      console.log(this.dataObj);
+			this.dataObj = data;
+			console.log(this.dataObj);
 		})
 		.catch(function(err) {
 			if (err) console.log("Call to PriceLine API failed");
@@ -186,31 +218,28 @@ app.post('/texts', function(req, res) {
 	});
 	// var phoneMapObj = map.get(phoneToMssg);
 
-	//TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
-
-	//Defined a local escape value. No other condition makes this true and therefore it's false in all other instances.
-
-	if (note === "pay" || note === "I want to pay now." || note === "charge" || note === "book it" || note === "get me the room") {
-		TwilioMessage(res, phoneToMssg, "Click on the following link and go through the payment process. Texting thanks after completion will end your session." + app.use(express.static(path.join(__dirname, '../public'))));
-	}
-
-	if (note === "search for" || "search") {
-		TwilioMessage(res, phoneToMssg, Bing.web(note, {
-				top: 5, // Number of results (max 50)
-				skip: 0, // Skip first 3 results
-			},
-			function(error, res, body) {
-
-				// body has more useful information, but for this example we are just
-				// printing the first two results
-				var searchResponse1 = body.d.results[0];
-				var searchResponse2 = body.d.results[1];
-			}));
-	}
-
-	if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!" || note === "thanks") {
-		TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
-	}
+//NOTE: I COMMENTED THIS BLOCK OUT TO GET THE SWITCH STATEMENT TO FUNCTION. IF OUTPUT IS NO LONGER COMING THAN THE SWITCH SHOULD BE REMOVED AND THIS SHOULD BE UNCOMMENTED. 9:30PM SATURDAY NIGHT.
+	// if (note === "pay" || note === "I want to pay now." || note === "charge" || note === "book it" || note === "get me the room") {
+	// 	TwilioMessage(res, phoneToMssg, "Click on the following link and go through the payment process. Texting thanks after completion will end your session." + app.use(express.static(path.join(__dirname, '../public'))));
+	// }
+	//
+	// if (note === "search for" || "search") {
+	// 	TwilioMessage(res, phoneToMssg, Bing.web(note, {
+	// 			top: 5, // Number of results (max 50)
+	// 			skip: 0, // Skip first 3 results
+	// 		},
+	// 		function(error, res, body) {
+	//
+	// 			// body has more useful information, but for this example we are just
+	// 			// printing the first two results
+	// 			var searchResponse1 = body.d.results[0];
+	// 			var searchResponse2 = body.d.results[1];
+	// 		}));
+	// }
+	//
+	// if (note === "Thank You" || note === "Thank you" || note === "thank you" || note === "Thank you!" || note === "thank you!" || note === "thanks") {
+	// 	TwilioMessage(res, phoneToMssg, "Thanks for using Hotline-Bing. Respond with any message to start a new search.");
+	// }
 
 	TwilioMessage(res, phoneToMssg, "End Twilio");
 });
