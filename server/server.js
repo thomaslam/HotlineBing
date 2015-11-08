@@ -16,7 +16,7 @@ var havenondemand = require('havenondemand');
 
 //Using Haven on Demand to parse the text of the user's message.
 var havenClient = new havenondemand.HODClient('http://api.idolondemand.com', '61e95a27-c3af-453b-9322-3bce956c0788');
-havenClient.call('conceptextraction', note, callback, true)
+
 
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
@@ -65,14 +65,14 @@ var TwilioMessage = function(res, phone, message) {
 		from: TWILIO_NUMBER,
 		body: message
 	}, function(err, data) {
-		res.send('Message is inbound!');
+		// res.send('Message is inbound!');
 	});
 }
 
-var priceLineRequest = function(location, checkIn, checkOut, sort, res, phoneToMssg) {
+var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 	// what is rguid=3459hjdfdf
   var options = "DETAILED_HOTEL,NEARBY_ATTR";
-	var queryStr = location + "?" + "check-in=" + checkIn + "&check-out=" + checkOut + "&currency=USD&response-options=" + options + "&rooms=1&sort=" + sort + "&offset=0&page-size=5";
+	var queryStr = location + "?" + "check-in=" + checkIn + "&check-out=" + checkOut + "&currency=USD&response-options=" + options + "&rooms=1&sort=PRICE" + "&offset=0&page-size=5";
 	console.log(queryStr);
 
 	var options = {
@@ -84,10 +84,9 @@ var priceLineRequest = function(location, checkIn, checkOut, sort, res, phoneToM
 	}
 	reqPromise(options)
 		.then(function(data) {
-			returnData = data;
 			var exStr = data.totalSize;
-			console.log(res);
-			// TwilioMessage(res, phoneToMssg, "Total size: " + exStr);
+			console.log(data);
+			TwilioMessage(res, phoneToMssg, "Total size: " + exStr);
 		})
 		.catch(function(err) {
 			if (err) console.log("Call to PriceLine API failed");
@@ -104,24 +103,20 @@ var hashMapObject = function(switchVar, location, checkIn, checkOut, sort) {
   }
 }
 
-var msgArray = {
-  0: "Thanks for texting Hotline-Bing! You can respond to this message with a general search term and get the results, or with PRICELINE and we will initiate a Priceline search. Text 'Thank You' at any point to stop searching.",
-  1: "Your message indicated you wanted to query Priceline\nWhere is the desired location that you want to book a hotel in?",
-  2: "For what dates do you want the hotel?",
-  3: "What is your maximum price per night?",
-  4: "Here is a list of hotels: ",
-  5: "Here is your hotel: " + "Respond with 'okay' to advance.",
-  6: "This is the hotel you're staying in. Would you like to book it?",
-  7: "Your hotel has been booked. Respond with any message to start a new search."
-};
-
-// app.post('/text_processor', bodyParser, function(req, res) {
-//   var data = {text: text, entity_type: ["places"]};
-
-//   havenClient.call('extractconcepts', data, function(req1, res1, body1) {
-//     var
-//   })
-// })
+var months = {
+  "JANUARY": 1,
+  "FEBRUARY": 2,
+  "MARCH": 3,
+  "APRIL": 4,
+  "MAY": 5,
+  "JUNE": 6,
+  "JULY": 7,
+  "AUGUST": 8,
+  "SEPTEMBER": 9,
+  "OCTOBER": 10,
+  "NOVEMBER": 11,
+  "DECEMBER": 12
+}
 
 app.post('/texts', function(req, res) {
   var note = req.body.Body;
@@ -129,17 +124,59 @@ app.post('/texts', function(req, res) {
   console.log(note);
   console.log('Number is ' + req.body.From);
 
-  var switchVar;
-  if (!map.has(phoneToMssg)) {
-    var phoneObj = hashMapObject(0, null, null, null, null);
-    map.set(phoneToMssg, phoneObj);
-    switchVar = 0;
-  } else {
-    switchVar = map.get(phoneToMssg).switchVar;
-    console.log("Switch var value: " + switchVar);
-  }
+  var data = {
+    text: note,
+    entity_type: ["places_eng", "date_eng"]
+  };
 
-  var phoneMapObj = map.get(phoneToMssg);
+  havenClient.call('extractentities', data, function(err, resp, body) {
+    var entities = resp.body.entities;
+    var loc;
+    var date1;
+    var date2;
+    for (var i=0; i < entities.length; i++) {
+      var entity = entities[i]
+      var type = entity.type
+      if (type === 'places_eng') {
+        loc = entity.original_text
+      }
+      console.log("sth"+date1)
+      if (type === 'date_eng') {
+        if (date1 === undefined){
+          date1 = entity.original_text;
+          console.log("ssgg"+date1)
+        } else
+          date2 = entity.original_text;
+      }
+    }
+    console.log(loc);
+    console.log(date1);
+    console.log(date2);
+    console.log(resp.body);
+
+    // date1, date2 parsing
+    date1 = date1.toUpperCase();
+    date2 = date2.toUpperCase();
+
+    console.log("Date1: " + date1);
+    console.log("Date2: " + date2);
+
+    var date1Month = date1.split(" ")[0];
+    var date1Day = date1.split(" ")[1];
+    date1Day = date1Day ? date1Day : "";
+    date2Day = date2Day ? date1Day : "";
+    var date2Month = date2.split(" ")[0];
+    var date2Day = date2.split(" ")[1];
+
+    date1Month = months[date1Month] ? months[date1Month] : date1Month;
+    date2Month = months[date2Month] ? months[date2Month] : date2Month;
+
+    date1 = "2015" + date1Month + date1Day;
+    date2 = "2015" + date2Month + date2Day;
+
+    priceLineRequest(loc, date1, date2, res, phoneToMssg)
+  });
+  // var phoneMapObj = map.get(phoneToMssg);
 
   //TODO: hotelListFromAPI-- returns a list of hotels that meet the criteria returned by the user in response to message prompts 2, 3 & 4.
 
@@ -154,87 +191,7 @@ app.post('/texts', function(req, res) {
 		return String(n) === str && n > 0;
 	}
 
-	// switch (switchVar) {
-	// 	// Priceline or Bing
- //    case 0:
- //      phoneMapObj.switchVar++;
- //      console.log(phoneObj);
- //      TwilioClient.messages.create({
- //        to: phoneToMssg,
- //        from: TWILIO_NUMBER,
- //        body: msgArray[0]
- //      }, function(err, data) {
- //        res.send('Message is inbound!');
- //      });
- //      break;
-	// 	case 1:
-	// 		if (note === "Priceline" || "priceline") {
- //        phoneMapObj.switchVar++;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[1]);
-	// 		} else {
- //        phoneMapObj.switchVar = -1;
- //        TwilioMessage(res, phoneToMssg, "Respond with a query for Bing here");
- //      }
-	// 		break;
-	// 	case 2:
-	// 		//In this case we want to return the second message if the user responded with a location.
-	// 		phoneMapObj.switchVar++;
- //      phoneMapObj.location = note;
- //      console.log(phoneMapObj);
- //      TwilioMessage(res, phoneToMssg, msgArray[2]);
-	// 		break;
-	// 	case 3:
-	// 		//Looking to see if the user has given us dates for the hotel stay.
-	// 		if (Date.parse(note) != NaN) {
- //        phoneMapObj.switchVar++;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[3]);
-	// 		}
-	// 		break;
-	// 	case 4:
-	// 		//Looking to see if the user input is equal to a price.
-	// 		if (isThisPrice(note)) {
- //        phoneMapObj.switchVar++;
- //        console.log(phoneMapObj);
-	// 			TwilioMessage(res, phoneToMssg, msgArray[4]);
-	// 		}
-	// 		break;
-	// 	case 5:
-	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
- //        phoneMapObj.switchVar++;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[5]);
-	// 		}
-	// 		break;
-	// 	//I think this should work because you've already hit the prior instance of this statement already, but if not then add another prompt to the proceeding message so there is a signifier/token which we can search for to make this 6th switch easier.
-	// 	case 6:
-	// 		if (note !== "Thank You!" || "thank you" || "Thank you" || "thank You") {
- //        phoneMapObj.switchVar++;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[6]);
-	// 		}
-	// 		break;
-	// 	case 7:
-	// 		if (note === "okay" || "Okay"){
- //        phoneMapObj.switchVar++;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
-	// 		}
-	// 		break;
-	// 	case 8:
-	// 		if (note === "yes" || "sure" || "book"){
- //        map.get(phoneToMssg).switchVar = 0;
-	// 			TwilioMessage(res, phoneToMssg, msgArray[7]);
-	// 		}
-	// 		break;
-	// 	default:
- //      // Do Bing stuff
- //      TwilioMessage(res, phoneToMssg, "Bing responds");
-	// }
-	//End switch statement.
-
-	// var location = "new york";
-	// var checkIn = "20151201";
-	// var checkOut = "20151202";
-	// var sort = "HDR";
-	// var dataPromise = priceLineRequest(location, checkIn, checkOut, sort, res, phoneToMssg);
- //  console.log(dataPromise);
+ TwilioMessage(res, phoneToMssg, "Error Twilio");
 });
 
 //Queries Bing for the search term that the user responded to the initial message with.
