@@ -20,8 +20,6 @@ var payments = require('./payments.js');
 //Using Haven on Demand to parse the text of the user's message.
 var havenClient = new havenondemand.HODClient('http://api.idolondemand.com', '61e95a27-c3af-453b-9322-3bce956c0788');
 
-
-
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
 TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
 TWILIO_NUMBER = config.TWILIO_NUMBER;
@@ -31,10 +29,8 @@ var TwimlResp = new twilio.TwimlResponse();
 
 //TODO:Function to format note names to append the user specific string generated in the Hashmap and store them in the MongoDB.
 var reassVal = function(note, number) {
-		return note + number;
-	}
-	//TODO: Full implementation of hashmap only because I'm uncertain of why you would still want to use this is you're appending a unique identifier to the quieries made to the user and then storing those in a DB.
-var map = new HashMap();
+	return note + number;
+}
 
 mongoose.connect(config.MONGODB_URL, function(err) {
 	if (err) {
@@ -42,11 +38,25 @@ mongoose.connect(config.MONGODB_URL, function(err) {
 	}
 });
 
-var PhoneSchema = new mongoose.Schema({
-	number: String,
-	//Cooper -- 6:47AM -- Why is the switchvar stored in the MongoDB? Shouldn't that not be necessary if we've logged all of the text messages to date?
-	switchVar: Number,
+mongoose.connection.on('connected', function() {
+  var mongourl = process.env.MONGODB_URL || 'mongodb://localhost/hotlinebing';
+  console.log("MongoDB connected " + mongourl);
 })
+
+mongoose.connection.on('error', function(err) {
+  console.log('MongoDB default connection error: ' + err);
+})
+
+var QuerySchema = new mongoose.Schema({
+  number: String,
+  firstHotel: String,
+  secondHotel: String,
+  thirdHotel: String,
+  fourthHotel: String,
+  fifthHotel: String
+});
+
+var queryModel = mongoose.model('Query', QuerySchema);
 
 var app = express();
 
@@ -85,26 +95,20 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
 		},
 		json: true
 	}
-	reqPromise(options)
+
+  var dataObj;
+
+	reqPromise(options).promise().bind(this)
 		.then(function(data) {
 			var exStr = data.hotels;
 			console.log(data);
 			TwilioMessage(res, phoneToMssg, "Found 5 hotels");
-      
+      this.dataObj = data;
+      console.log(this.dataObj);
 		})
 		.catch(function(err) {
 			if (err) console.log("Call to PriceLine API failed");
 		})
-}
-
-var hashMapObject = function(switchVar, location, checkIn, checkOut, sort) {
-	return {
-		"switchVar": switchVar,
-		"location": location,
-		"checkIn": checkIn,
-		"checkOut": checkOut,
-		"sort": sort
-	}
 }
 
 var months = {
