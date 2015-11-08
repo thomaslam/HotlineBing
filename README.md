@@ -17,3 +17,6 @@ When you text the server we have the ability to handle your request across multi
 To roll this yourself it would be quite simple. Clone this repo and make sure you have `Node` installed. Go about installing all of the dependencies and then replace the developer keys. They are as follows: `merchantId`, `publicKey`, `privateKey` in the `payments.js` file, and the `accKey` for both [Bing](https://www.bing.com/dev/) and [Haven-On-Demand](https://www.havenondemand.com/). Couple this with a fully functioning non-`Sandbox` account from Braintree, a premium [Twilio](https://www.twilio.com/) account & keys and a real payment forum and you're in business.
 
 It's likely that much in this repo is either broken, or written in a really horrible or hacked up way. We know this, we wrote it in less than 30 hours over two days. Pull-requests and issues are welcome.
+
+##License
+MIT License. See `LICENSE.md` for more information.
