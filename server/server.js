@@ -103,7 +103,9 @@ var TwilioMessage = function(res, phone, message) {
 
 var fiscalNoteRequest = function(res, phoneToMssg, query) {
   var queryStr = "/bills?q=" + query + "&apikey=" + FISCAL_API_KEY;
+  console.log(queryStr);
   var options = {
+    method: 'GET',
     uri: 'https://fiscalnote.github.io/FiscalNote-API/internal' + queryStr,
     headers: {
       'User-Agent': 'Request-Promise'
@@ -113,6 +115,7 @@ var fiscalNoteRequest = function(res, phoneToMssg, query) {
 
   reqPromise(options).promise().bind(this)
     .then(function(data) {
+      console.log(data);
       if (data) {
         var description = data[0].description;
         TwilioMessage(res, phoneToMssg, description);
@@ -120,8 +123,8 @@ var fiscalNoteRequest = function(res, phoneToMssg, query) {
     })
     .catch(function(err) {
       if (err) {
-        var stack = new Error().stack
-        console.log(stack);
+        // var stack = new Error().stack
+        // console.log(stack);
         TwilioMessage(res, phoneToMssg, "Uh oh seems like server is busy. Please try later");
         console.log("Server error");
         res.send('Error: end Twilio call');
@@ -180,7 +183,8 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
             price: price,
             checkInTime: checkIn,
             checkOutTime: checkOut,
-            policyInfo: policyInfo
+            policyInfo: policyInfo,
+            messageToSend: messageToSend
           }, {upsert: true}, function(err, hotel) {
             if (err) {
               var stack = new Error().stack
@@ -189,7 +193,9 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
               // TwilioMessage(res, phoneToMssg, "Uh oh can't save to MongoDB");
             } else {
               console.log("MongoDB success");
-              TwilioMessage(res, phoneToMssg, messageToSend);
+              var message = hotel.messageToSend;
+              console.log(message);
+              TwilioMessage(res, phoneToMssg, message);
             }
           })
           // TwilioMessage(res, phoneToMssg, messageToSend);
@@ -395,7 +401,7 @@ app.post('/texts', function(req, res) {
 	// TwilioMessage(res, phoneToMssg, "End Twilio");
 });
 
-app.get('/', function (request, response) {
+app.get('/paymentSessionUrl.html', function (request, response) {
 
   gateway.clientToken.generate({}, function (err, res) {
     response.render('index', {
