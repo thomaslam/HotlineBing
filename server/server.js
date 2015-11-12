@@ -31,8 +31,8 @@ var gateway = braintree.connect({
 });
 
 var TWILIO_ACCOUNT_SID = config.TWILIO_ACCOUNT_SID;
-TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
-TWILIO_NUMBER = config.TWILIO_NUMBER;
+var TWILIO_AUTH_TOKEN = config.TWILIO_AUTH_TOKEN;
+var TWILIO_NUMBER = config.TWILIO_NUMBER;
 var FISCAL_API_KEY = 'LQSNGG6QNH2A1Z30XMUEQ1MO3E0TST19';
 
 var TwilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
@@ -48,7 +48,6 @@ mongoose.connection.on('connected', function() {
 	var mongourl = process.env.MONGODB_URL || 'mongodb://localhost/hotlinebing';
 	console.log("MongoDB connected " + mongourl);
 })
-
 
 mongoose.connection.on('error', function(err) {
 	console.log('MongoDB default connection error: ' + err);
@@ -68,7 +67,7 @@ var HotelSchema = new mongoose.Schema({
   checkInTime: String,
   checkOutTime: String,
   policyInfo: String,
-  messageToSend: String 
+  messageToSend: String
 })
 
 var queryModel = mongoose.model('Query', QuerySchema);
@@ -89,7 +88,6 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookieParser());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
-
 
 var TwilioMessage = function(res, phone, message) {
 	TwilioClient.messages.create({
@@ -215,19 +213,19 @@ var priceLineRequest = function(location, checkIn, checkOut, res, phoneToMssg) {
         res.send('Error: end Twilio call');
       }
     })
-    
+
 }
 
 var months = {
-	"JANUARY": "01",
-	"FEBRUARY": "02",
-	"MARCH": "03",
-	"APRIL": "04",
-	"MAY": "05",
-	"JUNE": "06",
-	"JULY": "07",
-	"AUGUST": "08",
-	"SEPTEMBER": "09",
+	"JANUARY": 01,
+	"FEBRUARY": 02,
+	"MARCH": 03,
+	"APRIL": 04,
+	"MAY": 05,
+	"JUNE": 06,
+	"JULY": 07,
+	"AUGUST": 08,
+	"SEPTEMBER": 09,
 	"OCTOBER": 10,
 	"NOVEMBER": 11,
 	"DECEMBER": 12
@@ -268,6 +266,8 @@ app.post('/texts', function(req, res) {
       console.log(searchResponse1);
       console.log(searchResponse2);
       console.log(searchResponse3);
+			console.log(TWILIO_NUMBER);
+			console.log(phoneToMssg);
       TwilioMessage(res, phoneToMssg, "Bing answers");
       TwilioMessage(res, phoneToMssg, respUrl1 + "\n"+respDes1);
       TwilioMessage(res, phoneToMssg, respUrl2 + "\n"+respDes2);
@@ -341,7 +341,7 @@ app.post('/texts', function(req, res) {
     });
     TwilioMessage(res, phoneToMssg, "Searching PriceLine... Please wait");
   }
-	
+
 	// var phoneMapObj = map.get(phoneToMssg);
 
   // //Provide a logical switch to prevent the Priceline API from being called every time. THOMAS: If this broke something just remove the entire switch statement and go back to using the single logical statements chained together.
@@ -437,7 +437,6 @@ app.post('/process', parseUrlEnconded, function (request, response) {
   });
 
 });
-
 
 app.post('/calls', function(req, res) {
 	console.log(req);
